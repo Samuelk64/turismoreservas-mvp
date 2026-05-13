@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalTime;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -49,7 +49,7 @@ public class ReservaService {
 
     public ReservaResponseDTO crear(ReservaRequestDTO dto) {
 
-        // 1. Validar y obtener cliente
+        // 1. Validar cliente
         Cliente cliente = clienteService.buscarPorId(dto.getClienteId());
 
         // 2. Validar y obtener experiencias
@@ -57,7 +57,23 @@ public class ReservaService {
                 .map(experienciaService::buscarEntidadPorId)
                 .collect(Collectors.toList());
 
-        // 3. Verificar capacidad en cada experiencia
+        // 3. Validar que el horario seleccionado existe en cada experiencia
+        for (Experiencia exp : experiencias) {
+            String horarioElegido = dto.getHorariosSeleccionados()
+                    .get(exp.getExperienciaId());
+            if (horarioElegido == null) {
+                throw new BusinessException(
+                        "Debe seleccionar un horario para la experiencia: "
+                                + exp.getNombre());
+            }
+            if (!exp.getHorariosDisponibles().contains(horarioElegido)) {
+                throw new BusinessException(
+                        "El horario '" + horarioElegido +
+                                "' no está disponible para: " + exp.getNombre());
+            }
+        }
+
+        // 4. Validar capacidad
         experiencias.forEach(exp -> {
             if (dto.getCantidadPersonas() > exp.getCapacidadMaxima()) {
                 throw new BusinessException(
@@ -67,20 +83,45 @@ public class ReservaService {
             }
         });
 
-        // 4. Calcular total: suma de precios x cantidad de personas
+        // 5. RN-05 — Validar conflicto de horarios entre experiencias
+        for (int i = 0; i < experiencias.size(); i++) {
+            for (int j = i + 1; j < experiencias.size(); j++) {
+                Experiencia a = experiencias.get(i);
+                Experiencia b = experiencias.get(j);
+
+                LocalTime inicioA = LocalTime.parse(
+                        dto.getHorariosSeleccionados().get(a.getExperienciaId()));
+                LocalTime finA    = inicioA.plusHours(a.getDuracion());
+
+                LocalTime inicioB = LocalTime.parse(
+                        dto.getHorariosSeleccionados().get(b.getExperienciaId()));
+                LocalTime finB    = inicioB.plusHours(b.getDuracion());
+
+                boolean seSolapan = inicioA.isBefore(finB) && inicioB.isBefore(finA);
+
+                if (seSolapan) {
+                    throw new BusinessException(
+                            "RN-05: Conflicto de horario entre '" + a.getNombre() +
+                                    "' (" + inicioA + " - " + finA + ") y '" +
+                                    b.getNombre() + "' (" + inicioB + " - " + finB + ").");
+                }
+            }
+        }
+
+        // 6. Calcular total
         BigDecimal total = experiencias.stream()
                 .map(Experiencia::getPrecio)
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .multiply(BigDecimal.valueOf(dto.getCantidadPersonas()));
 
-        // 5. Construir y guardar la reserva
+        // 7. Crear reserva
         Reserva nueva = Reserva.builder()
                 .idReserva(contador.getAndIncrement())
                 .cliente(cliente)
                 .experiencias(experiencias)
+                .horariosSeleccionados(dto.getHorariosSeleccionados())
                 .fechaReserva(LocalDate.now())
                 .fechaExperiencia(dto.getFechaExperiencia())
-                .horaExperiencia(dto.getHoraExperiencia())
                 .cantidadPersonas(dto.getCantidadPersonas())
                 .metodoPago(dto.getMetodoPago())
                 .observaciones(dto.getObservaciones())
@@ -102,12 +143,20 @@ public class ReservaService {
         if (reserva.getEstadoReserva() == EstadoReserva.CANCELADA) {
             throw new BusinessException("La reserva ya se encuentra cancelada");
         }
-
         reserva.setEstadoReserva(EstadoReserva.CANCELADA);
         return toDTO(reserva);
     }
 
     private ReservaResponseDTO toDTO(Reserva r) {
+        // Construir mapa nombre experiencia -> horario
+        Map<String, String> horariosConfirmados = new LinkedHashMap<>();
+        r.getExperiencias().forEach(exp ->
+                horariosConfirmados.put(
+                        exp.getNombre(),
+                        r.getHorariosSeleccionados().get(exp.getExperienciaId())
+                )
+        );
+
         return ReservaResponseDTO.builder()
                 .idReserva(r.getIdReserva())
                 .clienteId(r.getCliente().getClienteId())
@@ -115,9 +164,9 @@ public class ReservaService {
                 .experienciasNombres(r.getExperiencias().stream()
                         .map(Experiencia::getNombre)
                         .collect(Collectors.toList()))
+                .horariosConfirmados(horariosConfirmados)
                 .fechaReserva(r.getFechaReserva())
                 .fechaExperiencia(r.getFechaExperiencia())
-                .horaExperiencia(r.getHoraExperiencia())
                 .cantidadPersonas(r.getCantidadPersonas())
                 .totalPagar(r.getTotalPagar())
                 .metodoPago(r.getMetodoPago())

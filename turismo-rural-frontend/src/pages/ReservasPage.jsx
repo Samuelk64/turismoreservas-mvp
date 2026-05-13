@@ -3,8 +3,7 @@ import {
     Box, Button, Typography, Grid, Card, CardContent, Dialog,
     DialogTitle, DialogContent, DialogActions, TextField, MenuItem,
     Snackbar, Alert, Chip, CircularProgress, Divider, Stepper,
-    Step, StepLabel, Checkbox, FormControlLabel, FormGroup,
-    FormHelperText, Paper
+    Step, StepLabel, Paper, Stack
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import CancelIcon from '@mui/icons-material/Cancel'
@@ -24,39 +23,36 @@ const METODOS_PAGO = [
 const PASOS = ['Seleccionar cliente', 'Elegir experiencias', 'Detalles y pago']
 
 const FORM_VACIO = {
-    clienteId:       '',
-    experienciaIds:  [],
-    fechaExperiencia:'',
-    horaExperiencia: '',
-    cantidadPersonas:'',
-    metodoPago:      '',
-    observaciones:   '',
+    clienteId:            '',
+    experienciaIds:       [],
+    horariosSeleccionados: {}, // { experienciaId: "HH:mm" }
+    fechaExperiencia:     '',
+    cantidadPersonas:     '',
+    metodoPago:           '',
+    observaciones:        '',
 }
 
 const COLOR_ESTADO = {
-    CONFIRMADA:  'success',
-    PENDIENTE:   'warning',
-    CANCELADA:   'error',
-    COMPLETADA:  'info',
+    CONFIRMADA: 'success',
+    PENDIENTE:  'warning',
+    CANCELADA:  'error',
+    COMPLETADA: 'info',
 }
 
 function ReservasPage() {
-    const [reservas, setReservas]         = useState([])
-    const [experiencias, setExperiencias] = useState([])
-    const [clientes, setClientes]         = useState([])
-    const [cargando, setCargando]         = useState(true)
-    const [modalAbierto, setModalAbierto] = useState(false)
-    const [pasoActual, setPasoActual]     = useState(0)
-    const [form, setForm]                 = useState(FORM_VACIO)
-    const [errores, setErrores]           = useState({})
+    const [reservas, setReservas]           = useState([])
+    const [experiencias, setExperiencias]   = useState([])
+    const [clientes, setClientes]           = useState([])
+    const [cargando, setCargando]           = useState(true)
+    const [modalAbierto, setModalAbierto]   = useState(false)
+    const [pasoActual, setPasoActual]       = useState(0)
+    const [form, setForm]                   = useState(FORM_VACIO)
+    const [errores, setErrores]             = useState({})
     const [confirmCancel, setConfirmCancel] = useState(null)
-    const [snack, setSnack]               = useState({ open: false, msg: '', tipo: 'success' })
     const [resumenDialog, setResumenDialog] = useState(null)
+    const [snack, setSnack]                 = useState({ open: false, msg: '', tipo: 'success' })
 
-    // ── Carga inicial ────────────────────────────────────────────
-    useEffect(() => {
-        cargarDatos()
-    }, [])
+    useEffect(() => { cargarDatos() }, [])
 
     const cargarDatos = async () => {
         try {
@@ -76,7 +72,6 @@ function ReservasPage() {
         }
     }
 
-    // ── Snackbar ─────────────────────────────────────────────────
     const mostrarSnack = (msg, tipo = 'success') =>
         setSnack({ open: true, msg, tipo })
 
@@ -95,6 +90,44 @@ function ReservasPage() {
         setPasoActual(0)
     }
 
+    // ── Selección de experiencias ────────────────────────────────
+    const toggleExperiencia = (exp) => {
+        const yaSeleccionada = form.experienciaIds.includes(exp.experienciaId)
+        if (yaSeleccionada) {
+            // Quitar experiencia y su horario
+            const nuevosHorarios = { ...form.horariosSeleccionados }
+            delete nuevosHorarios[exp.experienciaId]
+            setForm((prev) => ({
+                ...prev,
+                experienciaIds:        prev.experienciaIds.filter((id) => id !== exp.experienciaId),
+                horariosSeleccionados: nuevosHorarios,
+            }))
+        } else {
+            setForm((prev) => ({
+                ...prev,
+                experienciaIds: [...prev.experienciaIds, exp.experienciaId],
+            }))
+        }
+    }
+
+    const seleccionarHorario = (experienciaId, horario) => {
+        setForm((prev) => ({
+            ...prev,
+            horariosSeleccionados: {
+                ...prev.horariosSeleccionados,
+                [experienciaId]: horario,
+            },
+        }))
+    }
+
+    // ── Calcular total estimado ──────────────────────────────────
+    const calcularTotal = () => {
+        const seleccionadas = experiencias.filter((e) =>
+            form.experienciaIds.includes(e.experienciaId))
+        const suma = seleccionadas.reduce((acc, e) => acc + Number(e.precio), 0)
+        return suma * (Number(form.cantidadPersonas) || 1)
+    }
+
     // ── Validación por paso ──────────────────────────────────────
     const validarPaso = (paso) => {
         const e = {}
@@ -105,12 +138,15 @@ function ReservasPage() {
         if (paso === 1) {
             if (form.experienciaIds.length === 0)
                 e.experienciaIds = 'Debe seleccionar al menos una experiencia'
+            // Validar que cada experiencia seleccionada tenga horario
+            const sinHorario = form.experienciaIds.filter(
+                (id) => !form.horariosSeleccionados[id])
+            if (sinHorario.length > 0)
+                e.horariosSeleccionados = 'Debe seleccionar un horario para cada experiencia'
         }
         if (paso === 2) {
             if (!form.fechaExperiencia)
                 e.fechaExperiencia = 'La fecha es obligatoria'
-            if (!form.horaExperiencia)
-                e.horaExperiencia = 'La hora es obligatoria'
             if (!form.cantidadPersonas || Number(form.cantidadPersonas) < 1)
                 e.cantidadPersonas = 'Mínimo 1 persona'
             if (!form.metodoPago)
@@ -129,35 +165,22 @@ function ReservasPage() {
         setPasoActual((p) => p - 1)
     }
 
-    // ── Manejo de experiencias seleccionadas ─────────────────────
-    const toggleExperiencia = (id) => {
-        setForm((prev) => ({
-            ...prev,
-            experienciaIds: prev.experienciaIds.includes(id)
-                ? prev.experienciaIds.filter((e) => e !== id)
-                : [...prev.experienciaIds, id],
-        }))
-    }
-
-    // ── Calcular total estimado ───────────────────────────────────
-    const calcularTotal = () => {
-        const seleccionadas = experiencias.filter((e) =>
-            form.experienciaIds.includes(e.experienciaId))
-        const suma = seleccionadas.reduce((acc, e) => acc + Number(e.precio), 0)
-        return suma * (Number(form.cantidadPersonas) || 1)
-    }
-
     // ── Confirmar reserva ────────────────────────────────────────
     const confirmarReserva = async () => {
         if (!validarPaso(2)) return
         const payload = {
-            ...form,
-            cantidadPersonas: Number(form.cantidadPersonas),
+            clienteId:             form.clienteId,
+            experienciaIds:        form.experienciaIds,
+            horariosSeleccionados: form.horariosSeleccionados,
+            fechaExperiencia:      form.fechaExperiencia,
+            cantidadPersonas:      Number(form.cantidadPersonas),
+            metodoPago:            form.metodoPago,
+            observaciones:         form.observaciones,
         }
         try {
             const { data } = await crearReserva(payload)
             cerrarModal()
-            mostrarSnack('Reserva creada correctamente')
+            mostrarSnack('¡Reserva creada correctamente!')
             setResumenDialog(data)
             cargarDatos()
         } catch (err) {
@@ -178,7 +201,7 @@ function ReservasPage() {
         }
     }
 
-    // ── Render paso 0: Seleccionar cliente ───────────────────────
+    // ── Paso 0: Cliente ──────────────────────────────────────────
     const renderPaso0 = () => (
         <Box sx={{ mt: 1 }}>
             <TextField
@@ -199,89 +222,117 @@ function ReservasPage() {
         </Box>
     )
 
-    // ── Render paso 1: Seleccionar experiencias ──────────────────
+    // ── Paso 1: Experiencias + horarios ──────────────────────────
     const renderPaso1 = () => (
         <Box sx={{ mt: 1 }}>
-            <FormGroup>
-                <Grid container spacing={2}>
-                    {experiencias.map((exp) => {
-                        const seleccionada = form.experienciaIds.includes(exp.experienciaId)
-                        return (
-                            <Grid item xs={12} sm={6} key={exp.experienciaId}>
-                                <Paper
-                                    variant="outlined"
-                                    sx={{
-                                        p: 1.5,
-                                        borderRadius: 2,
-                                        borderColor: seleccionada ? 'primary.main' : 'divider',
-                                        borderWidth: seleccionada ? 2 : 1,
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 1.5,
-                                        transition: 'all 0.2s',
-                                    }}
-                                    onClick={() => toggleExperiencia(exp.experienciaId)}
-                                >
+            <Grid container spacing={2}>
+                {experiencias.map((exp) => {
+                    const seleccionada = form.experienciaIds.includes(exp.experienciaId)
+                    const horarioElegido = form.horariosSeleccionados[exp.experienciaId] || ''
+                    return (
+                        <Grid item xs={12} key={exp.experienciaId}>
+                            <Paper
+                                variant="outlined"
+                                sx={{
+                                    p: 2,
+                                    borderRadius: 2,
+                                    borderColor:  seleccionada ? 'primary.main' : 'divider',
+                                    borderWidth:  seleccionada ? 2 : 1,
+                                    cursor:       'pointer',
+                                    transition:   'all 0.2s',
+                                }}
+                                onClick={() => toggleExperiencia(exp)}
+                            >
+                                {/* Fila superior: imagen + info */}
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                     <Box
                                         component="img"
                                         src={getImagenPorTipo(exp.tipoExperiencia)}
                                         alt={exp.nombre}
-                                        sx={{ width: 60, height: 60, borderRadius: 1, objectFit: 'cover' }}
+                                        sx={{ width: 72, height: 72, borderRadius: 2, objectFit: 'cover', flexShrink: 0 }}
                                     />
                                     <Box sx={{ flexGrow: 1 }}>
-                                        <Typography variant="body2" fontWeight="bold">
-                                            {exp.nombre}
-                                        </Typography>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Typography fontWeight="bold">{exp.nombre}</Typography>
+                                            <Chip
+                                                label={seleccionada ? 'Seleccionada' : 'Seleccionar'}
+                                                color={seleccionada ? 'primary' : 'default'}
+                                                size="small"
+                                            />
+                                        </Box>
                                         <Typography variant="caption" color="text.secondary">
-                                            ${Number(exp.precio).toLocaleString('es-CO')} COP · {exp.duracion}h
+                                            📍 {exp.ubicacion} · ⏱ {exp.duracion}h · 👥 máx {exp.capacidadMaxima}
+                                        </Typography>
+                                        <Typography variant="body2" fontWeight="bold" color="primary">
+                                            ${Number(exp.precio).toLocaleString('es-CO')} COP / persona
                                         </Typography>
                                     </Box>
-                                    <Checkbox
-                                        checked={seleccionada}
-                                        color="primary"
+                                </Box>
+
+                                {/* Selector de horario — solo si está seleccionada */}
+                                {seleccionada && (
+                                    <Box
+                                        sx={{ mt: 2 }}
                                         onClick={(e) => e.stopPropagation()}
-                                        onChange={() => toggleExperiencia(exp.experienciaId)}
-                                    />
-                                </Paper>
-                            </Grid>
-                        )
-                    })}
-                </Grid>
-            </FormGroup>
+                                    >
+                                        <Typography variant="caption" fontWeight="bold" color="text.secondary">
+                                            Selecciona un horario:
+                                        </Typography>
+                                        <Stack direction="row" flexWrap="wrap" gap={1} mt={0.5}>
+                                            {exp.horariosDisponibles?.map((h) => (
+                                                <Chip
+                                                    key={h}
+                                                    label={h}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        seleccionarHorario(exp.experienciaId, h)
+                                                    }}
+                                                    color={horarioElegido === h ? 'primary' : 'default'}
+                                                    variant={horarioElegido === h ? 'filled' : 'outlined'}
+                                                    sx={{ cursor: 'pointer' }}
+                                                />
+                                            ))}
+                                        </Stack>
+                                        {horarioElegido && (
+                                            <Typography variant="caption" color="success.main" mt={0.5} display="block">
+                                                ✓ Horario seleccionado: {horarioElegido}
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                )}
+                            </Paper>
+                        </Grid>
+                    )
+                })}
+            </Grid>
+
+            {/* Errores paso 1 */}
             {errores.experienciaIds && (
-                <FormHelperText error sx={{ mt: 1 }}>
+                <Typography variant="caption" color="error" mt={1} display="block">
                     {errores.experienciaIds}
-                </FormHelperText>
+                </Typography>
+            )}
+            {errores.horariosSeleccionados && (
+                <Typography variant="caption" color="error" mt={0.5} display="block">
+                    {errores.horariosSeleccionados}
+                </Typography>
             )}
         </Box>
     )
 
-    // ── Render paso 2: Detalles y pago ───────────────────────────
+    // ── Paso 2: Detalles y pago ──────────────────────────────────
     const renderPaso2 = () => (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <Box sx={{ display: 'flex', gap: 2 }}>
-                <TextField
-                    label="Fecha"
-                    type="date"
-                    value={form.fechaExperiencia}
-                    onChange={(e) => setForm({ ...form, fechaExperiencia: e.target.value })}
-                    error={!!errores.fechaExperiencia}
-                    helperText={errores.fechaExperiencia}
-                    InputLabelProps={{ shrink: true }}
-                    fullWidth
-                />
-                <TextField
-                    label="Hora"
-                    type="time"
-                    value={form.horaExperiencia}
-                    onChange={(e) => setForm({ ...form, horaExperiencia: e.target.value })}
-                    error={!!errores.horaExperiencia}
-                    helperText={errores.horaExperiencia}
-                    InputLabelProps={{ shrink: true }}
-                    fullWidth
-                />
-            </Box>
+            <TextField
+                label="Fecha de la experiencia"
+                type="date"
+                value={form.fechaExperiencia}
+                onChange={(e) => setForm({ ...form, fechaExperiencia: e.target.value })}
+                error={!!errores.fechaExperiencia}
+                helperText={errores.fechaExperiencia}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+            />
             <Box sx={{ display: 'flex', gap: 2 }}>
                 <TextField
                     label="Cantidad de personas"
@@ -315,18 +366,33 @@ function ReservasPage() {
                 fullWidth
             />
 
-            {/* Resumen de total estimado */}
-            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: 'primary.50' }}>
-                <Typography variant="subtitle2" color="text.secondary">
-                    Total estimado
+            {/* Resumen de experiencias y horarios elegidos */}
+            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                <Typography variant="subtitle2" fontWeight="bold" mb={1}>
+                    Resumen de selección
                 </Typography>
-                <Typography variant="h5" fontWeight="bold" color="primary">
-                    ${calcularTotal().toLocaleString('es-CO')} COP
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                    {form.experienciaIds.length} experiencia(s) ×{' '}
-                    {form.cantidadPersonas || 1} persona(s)
-                </Typography>
+                {experiencias
+                    .filter((e) => form.experienciaIds.includes(e.experienciaId))
+                    .map((exp) => (
+                        <Box key={exp.experienciaId} sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                            <Typography variant="body2">{exp.nombre}</Typography>
+                            <Chip
+                                label={form.horariosSeleccionados[exp.experienciaId]}
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                            />
+                        </Box>
+                    ))}
+                <Divider sx={{ my: 1 }} />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">
+                        {form.experienciaIds.length} experiencia(s) × {form.cantidadPersonas || 1} persona(s)
+                    </Typography>
+                    <Typography variant="h6" fontWeight="bold" color="primary">
+                        ${calcularTotal().toLocaleString('es-CO')} COP
+                    </Typography>
+                </Box>
             </Paper>
         </Box>
     )
@@ -372,22 +438,26 @@ function ReservasPage() {
                                         />
                                     </Box>
                                     <Divider sx={{ mb: 1.5 }} />
-                                    <Typography variant="body2">
-                                        👤 <b>Cliente:</b> {r.clienteNombre}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                        🗓 <b>Fecha:</b> {r.fechaExperiencia} a las {r.horaExperiencia}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                        👥 <b>Personas:</b> {r.cantidadPersonas}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                        🎯 <b>Experiencias:</b> {r.experienciasNombres.join(', ')}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                        💳 <b>Pago:</b> {r.metodoPago}
-                                    </Typography>
-                                    <Typography variant="subtitle1" fontWeight="bold" color="primary" mt={1}>
+                                    <Typography variant="body2">👤 <b>Cliente:</b> {r.clienteNombre}</Typography>
+                                    <Typography variant="body2">🗓 <b>Fecha:</b> {r.fechaExperiencia}</Typography>
+                                    <Typography variant="body2">👥 <b>Personas:</b> {r.cantidadPersonas}</Typography>
+                                    <Typography variant="body2">💳 <b>Pago:</b> {r.metodoPago}</Typography>
+
+                                    {/* Experiencias con sus horarios confirmados */}
+                                    <Box sx={{ mt: 1 }}>
+                                        <Typography variant="body2" fontWeight="bold">🎯 Experiencias:</Typography>
+                                        {Object.entries(r.horariosConfirmados || {}).map(([nombre, horario]) => (
+                                            <Box
+                                                key={nombre}
+                                                sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', ml: 1, mt: 0.5 }}
+                                            >
+                                                <Typography variant="body2">{nombre}</Typography>
+                                                <Chip label={horario} size="small" color="primary" variant="outlined" />
+                                            </Box>
+                                        ))}
+                                    </Box>
+
+                                    <Typography variant="subtitle1" fontWeight="bold" color="primary" mt={1.5}>
                                         Total: ${Number(r.totalPagar).toLocaleString('es-CO')} COP
                                     </Typography>
                                     {r.observaciones && (
@@ -415,15 +485,13 @@ function ReservasPage() {
                 </Grid>
             )}
 
-            {/* Modal nueva reserva con Stepper */}
+            {/* Modal nueva reserva */}
             <Dialog open={modalAbierto} onClose={cerrarModal} maxWidth="sm" fullWidth>
                 <DialogTitle fontWeight="bold">Nueva Reserva</DialogTitle>
                 <DialogContent>
                     <Stepper activeStep={pasoActual} sx={{ mb: 3 }}>
                         {PASOS.map((label) => (
-                            <Step key={label}>
-                                <StepLabel>{label}</StepLabel>
-                            </Step>
+                            <Step key={label}><StepLabel>{label}</StepLabel></Step>
                         ))}
                     </Stepper>
                     {pasoActual === 0 && renderPaso0()}
@@ -436,9 +504,7 @@ function ReservasPage() {
                         <Button onClick={pasoAnterior} color="inherit">Atrás</Button>
                     )}
                     {pasoActual < PASOS.length - 1 ? (
-                        <Button onClick={siguientePaso} variant="contained">
-                            Siguiente
-                        </Button>
+                        <Button onClick={siguientePaso} variant="contained">Siguiente</Button>
                     ) : (
                         <Button onClick={confirmarReserva} variant="contained" color="success">
                             Confirmar reserva
@@ -449,22 +515,26 @@ function ReservasPage() {
 
             {/* Resumen reserva confirmada */}
             <Dialog open={!!resumenDialog} onClose={() => setResumenDialog(null)} maxWidth="xs" fullWidth>
-                <DialogTitle sx={{ textAlign: 'center' }}>
-                    <CheckCircleIcon color="success" sx={{ fontSize: 48 }} />
-                    <Typography variant="h6" fontWeight="bold">
-                        ¡Reserva confirmada!
-                    </Typography>
+                <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
+                    <CheckCircleIcon color="success" sx={{ fontSize: 52 }} />
+                    <Typography variant="h6" fontWeight="bold">¡Reserva confirmada!</Typography>
                 </DialogTitle>
                 <DialogContent>
                     {resumenDialog && (
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
                             <Typography><b>Reserva #:</b> {resumenDialog.idReserva}</Typography>
                             <Typography><b>Cliente:</b> {resumenDialog.clienteNombre}</Typography>
-                            <Typography><b>Experiencias:</b> {resumenDialog.experienciasNombres.join(', ')}</Typography>
                             <Typography><b>Fecha:</b> {resumenDialog.fechaExperiencia}</Typography>
-                            <Typography><b>Hora:</b> {resumenDialog.horaExperiencia}</Typography>
                             <Typography><b>Personas:</b> {resumenDialog.cantidadPersonas}</Typography>
                             <Typography><b>Método de pago:</b> {resumenDialog.metodoPago}</Typography>
+                            <Divider />
+                            <Typography variant="body2" fontWeight="bold">Experiencias y horarios:</Typography>
+                            {Object.entries(resumenDialog.horariosConfirmados || {}).map(([nombre, horario]) => (
+                                <Box key={nombre} sx={{ display: 'flex', justifyContent: 'space-between', ml: 1 }}>
+                                    <Typography variant="body2">{nombre}</Typography>
+                                    <Chip label={horario} size="small" color="primary" variant="outlined" />
+                                </Box>
+                            ))}
                             <Divider />
                             <Typography variant="h6" color="primary" fontWeight="bold">
                                 Total: ${Number(resumenDialog.totalPagar).toLocaleString('es-CO')} COP

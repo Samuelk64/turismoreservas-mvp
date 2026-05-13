@@ -7,6 +7,7 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class ReservaRequestDTO {
@@ -21,8 +22,8 @@ public class ReservaRequestDTO {
     @Future(message = "La fecha debe ser futura")
     private LocalDate fechaExperiencia;
 
-    @NotNull(message = "La hora es obligatoria")
-    private LocalTime horaExperiencia;
+    @NotEmpty(message = "Debe seleccionar un horario por cada experiencia")
+    private Map<Long, String> horariosSeleccionados;
 
     @NotNull(message = "La cantidad de personas es obligatoria")
     @Min(value = 1, message = "Debe haber al menos 1 persona")

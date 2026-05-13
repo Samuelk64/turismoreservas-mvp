@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @NoArgsConstructor
@@ -22,7 +23,7 @@ public class Reserva {
     private List<Experiencia> experiencias;
     private LocalDate fechaReserva;
     private LocalDate fechaExperiencia;
-    private LocalTime horaExperiencia;
+    private Map<Long, String> horariosSeleccionados;
     private Integer cantidadPersonas;
     private EstadoReserva estadoReserva;
     private BigDecimal totalPagar;

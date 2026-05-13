@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 public class ExperienciaRequestDTO {
@@ -21,6 +22,9 @@ public class ExperienciaRequestDTO {
     @NotNull(message = "La duracion es obligatoria")
     @Min(value = 1, message = "La duracion minima es 1 hora")
     private Integer duracion;
+
+    @NotEmpty(message = "Debe definir al menos un horario disponible")
+    private List<String> horariosDisponibles;
 
     @NotBlank(message = "La ubicacion es obligatoria")
     private String ubicacion;

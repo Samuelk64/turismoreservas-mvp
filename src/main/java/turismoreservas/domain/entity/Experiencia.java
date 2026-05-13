@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -21,4 +22,5 @@ public class Experiencia {
     private String tipoExperiencia;
     private Integer capacidadMaxima;
     private Boolean estado;
+    private List<String> horariosDisponibles;
 }

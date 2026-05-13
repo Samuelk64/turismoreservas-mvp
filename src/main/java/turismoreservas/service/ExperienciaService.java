@@ -24,28 +24,33 @@ public class ExperienciaService {
                     .precio(new BigDecimal("75000")).duracion(4)
                     .ubicacion("Vereda El Roble, Salento")
                     .tipoExperiencia("Senderismo")
-                    .capacidadMaxima(12).estado(true).build(),
+                    .capacidadMaxima(12).estado(true)
+                    .horariosDisponibles(List.of("07:00", "10:00", "13:00")).
+                     build(),
             Experiencia.builder()
                     .experienciaId(2L).nombre("Avistamiento de Aves")
                     .descripcion("Tour al amanecer con guia ornitologo especializado")
                     .precio(new BigDecimal("55000")).duracion(3)
                     .ubicacion("Reserva Natural Acaime, Salento")
                     .tipoExperiencia("Naturaleza")
-                    .capacidadMaxima(8).estado(true).build(),
+                    .capacidadMaxima(8).estado(true)
+                    .horariosDisponibles(List.of("05:30", "08:00")).build(),
             Experiencia.builder()
                     .experienciaId(3L).nombre("Taller de Quesos Artesanales")
                     .descripcion("Elaboracion de quesos frescos con leche de la finca")
                     .precio(new BigDecimal("45000")).duracion(2)
                     .ubicacion("Finca La Esperanza, Filandia")
                     .tipoExperiencia("Gastronomia")
-                    .capacidadMaxima(10).estado(true).build(),
+                    .capacidadMaxima(10).estado(true).
+                    horariosDisponibles(List.of("09:00", "14:00", "16:00")).build(),
             Experiencia.builder()
                     .experienciaId(4L).nombre("Recorrido en Jeep Willy")
                     .descripcion("Tour por paisaje cafetero en jeep tradicional")
                     .precio(new BigDecimal("35000")).duracion(2)
                     .ubicacion("Zona Cafetera, Quindio")
                     .tipoExperiencia("Cultural")
-                    .capacidadMaxima(6).estado(true).build()
+                    .capacidadMaxima(6).estado(true)
+                    .horariosDisponibles(List.of("08:00", "11:00", "15:00")).build()
     ));
 
     public List<ExperienciaResponseDTO> listarTodas() {
@@ -78,6 +83,7 @@ public class ExperienciaService {
                 .descripcion(dto.getDescripcion())
                 .precio(dto.getPrecio())
                 .duracion(dto.getDuracion())
+                .horariosDisponibles(dto.getHorariosDisponibles())
                 .ubicacion(dto.getUbicacion())
                 .tipoExperiencia(dto.getTipoExperiencia())
                 .capacidadMaxima(dto.getCapacidadMaxima())
@@ -93,6 +99,7 @@ public class ExperienciaService {
         existente.setDescripcion(dto.getDescripcion());
         existente.setPrecio(dto.getPrecio());
         existente.setDuracion(dto.getDuracion());
+        existente.setHorariosDisponibles(dto.getHorariosDisponibles());
         existente.setUbicacion(dto.getUbicacion());
         existente.setTipoExperiencia(dto.getTipoExperiencia());
         existente.setCapacidadMaxima(dto.getCapacidadMaxima());
@@ -111,6 +118,7 @@ public class ExperienciaService {
                 .descripcion(e.getDescripcion())
                 .precio(e.getPrecio())
                 .duracion(e.getDuracion())
+                .horariosDisponibles(e.getHorariosDisponibles())
                 .ubicacion(e.getUbicacion())
                 .tipoExperiencia(e.getTipoExperiencia())
                 .capacidadMaxima(e.getCapacidadMaxima())

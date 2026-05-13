@@ -8,35 +8,35 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import { getExperiencias, crearExperiencia, actualizarExp, eliminarExp } from '../api/experiencias'
 import { getImagenPorTipo } from '../utils/imagenes'
 
 const TIPOS = ['Senderismo', 'Naturaleza', 'Gastronomia', 'Cultural']
 
 const FORM_VACIO = {
-    nombre:          '',
-    descripcion:     '',
-    precio:          '',
-    duracion:        '',
-    ubicacion:       '',
-    tipoExperiencia: '',
-    capacidadMaxima: '',
+    nombre:               '',
+    descripcion:          '',
+    precio:               '',
+    duracion:             '',
+    ubicacion:            '',
+    tipoExperiencia:      '',
+    capacidadMaxima:      '',
+    horariosDisponibles:  [''],
 }
 
 function ExperienciasPage() {
-    const [experiencias, setExperiencias]   = useState([])
-    const [cargando, setCargando]           = useState(true)
-    const [modalAbierto, setModalAbierto]   = useState(false)
-    const [editando, setEditando]           = useState(null)   // null = crear, obj = editar
-    const [form, setForm]                   = useState(FORM_VACIO)
-    const [errores, setErrores]             = useState({})
-    const [confirmElim, setConfirmElim]     = useState(null)   // id a eliminar
-    const [snack, setSnack]                 = useState({ open: false, msg: '', tipo: 'success' })
+    const [experiencias, setExperiencias] = useState([])
+    const [cargando, setCargando]         = useState(true)
+    const [modalAbierto, setModalAbierto] = useState(false)
+    const [editando, setEditando]         = useState(null)
+    const [form, setForm]                 = useState(FORM_VACIO)
+    const [errores, setErrores]           = useState({})
+    const [confirmElim, setConfirmElim]   = useState(null)
+    const [snack, setSnack]               = useState({ open: false, msg: '', tipo: 'success' })
 
-    // ── Cargar experiencias ──────────────────────────────────────
-    useEffect(() => {
-        cargarExperiencias()
-    }, [])
+    useEffect(() => { cargarExperiencias() }, [])
 
     const cargarExperiencias = async () => {
         try {
@@ -50,7 +50,6 @@ function ExperienciasPage() {
         }
     }
 
-    // ── Snackbar ─────────────────────────────────────────────────
     const mostrarSnack = (msg, tipo = 'success') =>
         setSnack({ open: true, msg, tipo })
 
@@ -65,13 +64,16 @@ function ExperienciasPage() {
     const abrirEditar = (exp) => {
         setEditando(exp)
         setForm({
-            nombre:          exp.nombre,
-            descripcion:     exp.descripcion,
-            precio:          exp.precio,
-            duracion:        exp.duracion,
-            ubicacion:       exp.ubicacion,
-            tipoExperiencia: exp.tipoExperiencia,
-            capacidadMaxima: exp.capacidadMaxima,
+            nombre:              exp.nombre,
+            descripcion:         exp.descripcion,
+            precio:              exp.precio,
+            duracion:            exp.duracion,
+            ubicacion:           exp.ubicacion,
+            tipoExperiencia:     exp.tipoExperiencia,
+            capacidadMaxima:     exp.capacidadMaxima,
+            horariosDisponibles: exp.horariosDisponibles?.length > 0
+                ? exp.horariosDisponibles
+                : [''],
         })
         setErrores({})
         setModalAbierto(true)
@@ -83,6 +85,26 @@ function ExperienciasPage() {
         setForm(FORM_VACIO)
         setErrores({})
     }
+
+    // ── Horarios ─────────────────────────────────────────────────
+    const agregarHorario = () =>
+        setForm((prev) => ({
+            ...prev,
+            horariosDisponibles: [...prev.horariosDisponibles, ''],
+        }))
+
+    const eliminarHorario = (index) =>
+        setForm((prev) => ({
+            ...prev,
+            horariosDisponibles: prev.horariosDisponibles.filter((_, i) => i !== index),
+        }))
+
+    const cambiarHorario = (index, valor) =>
+        setForm((prev) => {
+            const nuevos = [...prev.horariosDisponibles]
+            nuevos[index] = valor
+            return { ...prev, horariosDisponibles: nuevos }
+        })
 
     // ── Validación ───────────────────────────────────────────────
     const validar = () => {
@@ -101,18 +123,22 @@ function ExperienciasPage() {
             e.tipoExperiencia = 'El tipo es obligatorio'
         if (!form.capacidadMaxima || Number(form.capacidadMaxima) < 1)
             e.capacidadMaxima = 'La capacidad mínima es 1'
+        const horariosValidos = form.horariosDisponibles.filter((h) => h.trim() !== '')
+        if (horariosValidos.length === 0)
+            e.horariosDisponibles = 'Debe definir al menos un horario'
         setErrores(e)
         return Object.keys(e).length === 0
     }
 
-    // ── Guardar (crear o editar) ──────────────────────────────────
+    // ── Guardar ──────────────────────────────────────────────────
     const guardar = async () => {
         if (!validar()) return
         const payload = {
             ...form,
-            precio:          Number(form.precio),
-            duracion:        Number(form.duracion),
-            capacidadMaxima: Number(form.capacidadMaxima),
+            precio:              Number(form.precio),
+            duracion:            Number(form.duracion),
+            capacidadMaxima:     Number(form.capacidadMaxima),
+            horariosDisponibles: form.horariosDisponibles.filter((h) => h.trim() !== ''),
         }
         try {
             if (editando) {
@@ -149,11 +175,7 @@ function ExperienciasPage() {
                 <Typography variant="h4" fontWeight="bold" color="primary">
                     Experiencias
                 </Typography>
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={abrirCrear}
-                >
+                <Button variant="contained" startIcon={<AddIcon />} onClick={abrirCrear}>
                     Nueva Experiencia
                 </Button>
             </Box>
@@ -180,11 +202,7 @@ function ExperienciasPage() {
                                         <Typography variant="h6" fontWeight="bold">
                                             {exp.nombre}
                                         </Typography>
-                                        <Chip
-                                            label={exp.tipoExperiencia}
-                                            color="primary"
-                                            size="small"
-                                        />
+                                        <Chip label={exp.tipoExperiencia} color="primary" size="small" />
                                     </Box>
                                     <Typography variant="body2" color="text.secondary" mb={1}>
                                         {exp.descripcion}
@@ -192,6 +210,19 @@ function ExperienciasPage() {
                                     <Typography variant="body2">📍 {exp.ubicacion}</Typography>
                                     <Typography variant="body2">⏱ {exp.duracion} horas</Typography>
                                     <Typography variant="body2">👥 Capacidad: {exp.capacidadMaxima} personas</Typography>
+
+                                    {/* Horarios disponibles */}
+                                    <Box sx={{ mt: 1 }}>
+                                        <Typography variant="caption" color="text.secondary" fontWeight="bold">
+                                            🕐 Horarios disponibles:
+                                        </Typography>
+                                        <Stack direction="row" flexWrap="wrap" gap={0.5} mt={0.5}>
+                                            {exp.horariosDisponibles?.map((h) => (
+                                                <Chip key={h} label={h} size="small" variant="outlined" color="primary" />
+                                            ))}
+                                        </Stack>
+                                    </Box>
+
                                     <Typography variant="subtitle1" fontWeight="bold" color="primary" mt={1}>
                                         ${Number(exp.precio).toLocaleString('es-CO')} COP
                                     </Typography>
@@ -286,6 +317,46 @@ function ExperienciasPage() {
                                 helperText={errores.capacidadMaxima}
                                 fullWidth
                             />
+                        </Box>
+
+                        {/* Horarios disponibles */}
+                        <Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                <Typography variant="body2" fontWeight="bold">
+                                    Horarios disponibles
+                                </Typography>
+                                <Button
+                                    size="small"
+                                    startIcon={<AddCircleOutlineIcon />}
+                                    onClick={agregarHorario}
+                                >
+                                    Agregar horario
+                                </Button>
+                            </Box>
+                            {form.horariosDisponibles.map((horario, index) => (
+                                <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                    <TextField
+                                        type="time"
+                                        value={horario}
+                                        onChange={(e) => cambiarHorario(index, e.target.value)}
+                                        size="small"
+                                        InputLabelProps={{ shrink: true }}
+                                        fullWidth
+                                    />
+                                    <IconButton
+                                        color="error"
+                                        onClick={() => eliminarHorario(index)}
+                                        disabled={form.horariosDisponibles.length === 1}
+                                    >
+                                        <RemoveCircleOutlineIcon />
+                                    </IconButton>
+                                </Box>
+                            ))}
+                            {errores.horariosDisponibles && (
+                                <Typography variant="caption" color="error">
+                                    {errores.horariosDisponibles}
+                                </Typography>
+                            )}
                         </Box>
                     </Box>
                 </DialogContent>
