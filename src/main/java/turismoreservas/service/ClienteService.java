@@ -10,9 +10,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Servicio encargado de la gestión de clientes del sistema.
+ * <p>
+ * Administra una lista de clientes precargados en memoria que sirven
+ * como datos de prueba para el MVP. No requiere persistencia en base
+ * de datos — los datos se mantienen durante la ejecución de la aplicación.
+ * </p>
+ * <p>
+ * Es utilizado por {@link ReservaService} para validar la existencia
+ * del cliente al momento de crear una reserva.
+ * </p>
+ */
 @Service
 public class ClienteService {
 
+    /**
+     * Lista en memoria que actúa como repositorio de clientes.
+     * Contiene 4 clientes precargados como datos de prueba del MVP.
+     */
     private final List<Cliente> clientes = new ArrayList<>(List.of(
             Cliente.builder()
                     .id(1L).clienteId(1L).nombre("Ana Garcia")
@@ -32,12 +48,33 @@ public class ClienteService {
                     .estado(true).fechaRegistro(LocalDate.of(2025, 1, 15)).build()
     ));
 
+    /**
+     * Retorna la lista completa de clientes registrados en el sistema.
+     * <p>
+     * Convierte cada entidad {@link Cliente} a su representación
+     * {@link ClienteResponseDTO} antes de retornarla.
+     * </p>
+     *
+     * @return lista de {@link ClienteResponseDTO} con todos los clientes disponibles
+     */
     public List<ClienteResponseDTO> listarTodos() {
         return clientes.stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Busca y retorna la entidad {@link Cliente} correspondiente al ID recibido.
+     * <p>
+     * Este método retorna la entidad directamente (no el DTO) ya que es
+     * utilizado internamente por {@link ReservaService} para construir
+     * la relación entre reserva y cliente.
+     * </p>
+     *
+     * @param id identificador único del cliente a buscar
+     * @return entidad {@link Cliente} correspondiente al ID
+     * @throws ResourceNotFoundException si no existe un cliente con el ID proporcionado
+     */
     public Cliente buscarPorId(Long id) {
         return clientes.stream()
                 .filter(c -> c.getClienteId().equals(id))
@@ -46,6 +83,16 @@ public class ClienteService {
                         "Cliente no encontrado con ID: " + id));
     }
 
+    /**
+     * Convierte una entidad {@link Cliente} en su DTO de respuesta.
+     * <p>
+     * Mapea únicamente los campos necesarios para la respuesta al cliente
+     * HTTP, omitiendo datos internos como {@code fechaRegistro}.
+     * </p>
+     *
+     * @param c entidad {@link Cliente} a convertir
+     * @return {@link ClienteResponseDTO} con los datos del cliente
+     */
     private ClienteResponseDTO toDTO(Cliente c) {
         return ClienteResponseDTO.builder()
                 .clienteId(c.getClienteId())

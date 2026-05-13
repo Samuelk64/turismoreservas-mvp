@@ -12,11 +12,34 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+
+/**
+ * Servicio encargado de la gestión de experiencias de turismo rural.
+ * <p>
+ * Implementa el CRUD completo sobre una lista de experiencias mantenida
+ * en memoria durante la ejecución de la aplicación. Contiene 4 experiencias
+ * precargadas como datos de prueba del MVP.
+ * </p>
+ * <p>
+ * Es utilizado por {@link ReservaService} e {@link ItinerarioService}
+ * para validar y obtener experiencias al momento de crear reservas
+ * e itinerarios respectivamente.
+ * </p>
+ */
 @Service
 public class ExperienciaService {
 
+    /**
+     * Contador atómico para la generación de IDs únicos de nuevas experiencias.
+     * Se inicializa en 5 dado que los datos precargados ocupan los IDs del 1 al 4.
+     */
     private final AtomicLong contador = new AtomicLong(5L);
 
+    /**
+     * Lista en memoria que actúa como repositorio de experiencias.
+     * Contiene 4 experiencias precargadas como datos de prueba del MVP,
+     * cada una con sus horarios disponibles definidos.
+     */
     private final List<Experiencia> experiencias = new ArrayList<>(List.of(
             Experiencia.builder()
                     .experienciaId(1L).nombre("Senderismo El Roble")
@@ -53,12 +76,32 @@ public class ExperienciaService {
                     .horariosDisponibles(List.of("08:00", "11:00", "15:00")).build()
     ));
 
+    /**
+     * Retorna la lista completa de experiencias registradas en el sistema.
+     * <p>
+     * Convierte cada entidad {@link Experiencia} a su representación
+     * {@link ExperienciaResponseDTO} antes de retornarla.
+     * </p>
+     *
+     * @return lista de {@link ExperienciaResponseDTO} con todas las experiencias disponibles
+     */
     public List<ExperienciaResponseDTO> listarTodas() {
         return experiencias.stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Busca una experiencia por su ID y retorna su DTO de respuesta.
+     * <p>
+     * Utilizado por los endpoints REST para consultas individuales
+     * desde el frontend.
+     * </p>
+     *
+     * @param id identificador único de la experiencia a buscar
+     * @return {@link ExperienciaResponseDTO} con los datos de la experiencia
+     * @throws ResourceNotFoundException si no existe una experiencia con el ID proporcionado
+     */
     public ExperienciaResponseDTO buscarPorId(Long id) {
         return experiencias.stream()
                 .filter(e -> e.getExperienciaId().equals(id))
@@ -68,6 +111,19 @@ public class ExperienciaService {
                         "Experiencia no encontrada con ID: " + id));
     }
 
+    /**
+     * Busca y retorna la entidad {@link Experiencia} correspondiente al ID recibido.
+     * <p>
+     * A diferencia de {@link #buscarPorId(Long)}, este método retorna la entidad
+     * directamente sin convertirla a DTO. Es utilizado internamente por
+     * {@link ReservaService} e {@link ItinerarioService} para construir
+     * sus respectivas relaciones con la experiencia.
+     * </p>
+     *
+     * @param id identificador único de la experiencia a buscar
+     * @return entidad {@link Experiencia} correspondiente al ID
+     * @throws ResourceNotFoundException si no existe una experiencia con el ID proporcionado
+     */
     public Experiencia buscarEntidadPorId(Long id) {
         return experiencias.stream()
                 .filter(e -> e.getExperienciaId().equals(id))
@@ -76,6 +132,18 @@ public class ExperienciaService {
                         "Experiencia no encontrada con ID: " + id));
     }
 
+
+    /**
+     * Crea una nueva experiencia a partir del DTO de solicitud recibido.
+     * <p>
+     * Genera un ID único mediante el contador atómico, construye la entidad
+     * con estado {@code true} por defecto y la agrega a la lista en memoria.
+     * </p>
+     *
+     * @param dto {@link ExperienciaRequestDTO} con los datos de la nueva experiencia
+     * @return {@link ExperienciaResponseDTO} con los datos de la experiencia creada,
+     *         incluyendo el ID generado automáticamente
+     */
     public ExperienciaResponseDTO crear(ExperienciaRequestDTO dto) {
         Experiencia nueva = Experiencia.builder()
                 .experienciaId(contador.getAndIncrement())
@@ -93,6 +161,19 @@ public class ExperienciaService {
         return toDTO(nueva);
     }
 
+    /**
+     * Actualiza todos los campos de una experiencia existente identificada por su ID.
+     * <p>
+     * Localiza la entidad en memoria y reemplaza sus atributos con los
+     * valores recibidos en el DTO. Al operar sobre la referencia directa
+     * del objeto en la lista, los cambios se reflejan inmediatamente.
+     * </p>
+     *
+     * @param id  identificador único de la experiencia a actualizar
+     * @param dto {@link ExperienciaRequestDTO} con los nuevos valores de los campos
+     * @return {@link ExperienciaResponseDTO} con los datos actualizados de la experiencia
+     * @throws ResourceNotFoundException si no existe una experiencia con el ID proporcionado
+     */
     public ExperienciaResponseDTO actualizar(Long id, ExperienciaRequestDTO dto) {
         Experiencia existente = buscarEntidadPorId(id);
         existente.setNombre(dto.getNombre());
@@ -106,11 +187,33 @@ public class ExperienciaService {
         return toDTO(existente);
     }
 
+    /**
+     * Elimina una experiencia de la lista en memoria identificada por su ID.
+     * <p>
+     * Verifica primero la existencia de la experiencia antes de proceder
+     * con la eliminación, garantizando una respuesta de error apropiada
+     * si el ID no existe.
+     * </p>
+     *
+     * @param id identificador único de la experiencia a eliminar
+     * @throws ResourceNotFoundException si no existe una experiencia con el ID proporcionado
+     */
     public void eliminar(Long id) {
         Experiencia existente = buscarEntidadPorId(id);
         experiencias.remove(existente);
     }
 
+
+    /**
+     * Convierte una entidad {@link Experiencia} en su DTO de respuesta.
+     * <p>
+     * Mapea todos los campos de la entidad al {@link ExperienciaResponseDTO},
+     * incluyendo los horarios disponibles para ser consumidos por el frontend.
+     * </p>
+     *
+     * @param e entidad {@link Experiencia} a convertir
+     * @return {@link ExperienciaResponseDTO} con todos los datos de la experiencia
+     */
     private ExperienciaResponseDTO toDTO(Experiencia e) {
         return ExperienciaResponseDTO.builder()
                 .experienciaId(e.getExperienciaId())
