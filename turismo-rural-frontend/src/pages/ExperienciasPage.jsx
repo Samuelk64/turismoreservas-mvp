@@ -3,13 +3,13 @@ import {
     Box, Button, Typography, Grid, Card, CardMedia, CardContent,
     CardActions, Dialog, DialogTitle, DialogContent, DialogActions,
     TextField, MenuItem, IconButton, Snackbar, Alert, Chip,
-    CircularProgress
+    CircularProgress, Stack
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircle'
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircle'
 import { getExperiencias, crearExperiencia, actualizarExp, eliminarExp } from '../api/experiencias'
 import { getImagenPorTipo } from '../utils/imagenes'
 
