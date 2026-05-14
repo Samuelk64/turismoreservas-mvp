@@ -180,14 +180,24 @@ public class ReservaService {
         }
 
         // 4. Validar capacidad
-        experiencias.forEach(exp -> {
-            if (dto.getCantidadPersonas() > exp.getCapacidadMaxima()) {
+        for (Experiencia exp : experiencias) {
+
+            int personasYaReservadas = reservas.stream()
+                    .filter(r -> r.getEstadoReserva() != EstadoReserva.CANCELADA)
+                    .filter(r -> r.getFechaExperiencia().equals(dto.getFechaExperiencia()))
+                    .filter(r -> r.getHorariosSeleccionados().equals(dto.getHorariosSeleccionados()))
+                    .filter(r -> r.getExperiencias().stream()
+                            .anyMatch(e -> e.getExperienciaId().equals(exp.getExperienciaId()))
+                    )
+                    .mapToInt(Reserva::getCantidadPersonas)
+                    .sum();
+
+            if (personasYaReservadas + dto.getCantidadPersonas() > exp.getCapacidadMaxima()) {
                 throw new BusinessException(
-                        "La experiencia '" + exp.getNombre() +
-                                "' tiene capacidad maxima de " +
-                                exp.getCapacidadMaxima() + " personas");
+                        "No hay cupos suficientes para la experiencia: " + exp.getNombre()
+                );
             }
-        });
+        }
 
         // 5. RN-05 — Validar conflicto de horarios entre experiencias
         for (int i = 0; i < experiencias.size(); i++) {
@@ -210,6 +220,44 @@ public class ReservaService {
                             "RN-05: Conflicto de horario entre '" + a.getNombre() +
                                     "' (" + inicioA + " - " + finA + ") y '" +
                                     b.getNombre() + "' (" + inicioB + " - " + finB + ").");
+                }
+            }
+        }
+
+        // 6.5. Validar conflicto con reservas existentes del mismo cliente
+        List<Reserva> reservasCliente = reservas.stream()
+                .filter(r -> r.getCliente().getClienteId().equals(dto.getClienteId()))
+                .filter(r -> r.getEstadoReserva() != EstadoReserva.CANCELADA)
+                .filter(r -> r.getFechaExperiencia().equals(dto.getFechaExperiencia()))
+                .collect(Collectors.toList());
+
+        for (Reserva reservaExistente : reservasCliente) {
+            for (Experiencia expExistente : reservaExistente.getExperiencias()) {
+
+                String horarioExistente = reservaExistente.getHorariosSeleccionados()
+                        .get(expExistente.getExperienciaId());
+
+                LocalTime inicioExistente = LocalTime.parse(horarioExistente);
+                LocalTime finExistente    = inicioExistente.plusHours(expExistente.getDuracion());
+
+                for (Experiencia expNueva : experiencias) {
+                    String horarioNuevo = dto.getHorariosSeleccionados()
+                            .get(expNueva.getExperienciaId());
+
+                    LocalTime inicioNuevo = LocalTime.parse(horarioNuevo);
+                    LocalTime finNuevo    = inicioNuevo.plusHours(expNueva.getDuracion());
+
+                    boolean seSolapan = inicioNuevo.isBefore(finExistente)
+                            && inicioExistente.isBefore(finNuevo);
+
+                    if (seSolapan) {
+                        throw new BusinessException(
+                                "RN-05: El cliente ya tiene una reserva en esa fecha con '" +
+                                        expExistente.getNombre() + "' de " + inicioExistente +
+                                        " a " + finExistente + ", conflicto con '" +
+                                        expNueva.getNombre() + "' de " + inicioNuevo +
+                                        " a " + finNuevo + ".");
+                    }
                 }
             }
         }
