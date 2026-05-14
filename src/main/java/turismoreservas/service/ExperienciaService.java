@@ -124,56 +124,7 @@ public class ExperienciaService {
                     .capacidadMaxima(14).estado(true)
                     .horariosDisponibles(List.of("11:00", "17:00"))
                     .build()
-            ,
-            Experiencia.builder()
-                    .experienciaId(10L).nombre("Tour de Cacao Artesanal")
-                    .descripcion("Recorrido por cultivo de cacao y elaboracion de chocolate artesanal")
-                    .precio(new BigDecimal("70000")).duracion(3)
-                    .ubicacion("Buenavista, Quindio")
-                    .tipoExperiencia("Gastronomia")
-                    .capacidadMaxima(12).estado(true)
-                    .horariosDisponibles(List.of("09:00", "14:00"))
-                    .build(),
 
-            Experiencia.builder()
-                    .experienciaId(11L).nombre("Bicicleta de Montana Rural")
-                    .descripcion("Ruta guiada en bicicleta por caminos rurales y miradores naturales")
-                    .precio(new BigDecimal("90000")).duracion(4)
-                    .ubicacion("Circasia, Quindio")
-                    .tipoExperiencia("Aventura")
-                    .capacidadMaxima(10).estado(true)
-                    .horariosDisponibles(List.of("07:00", "15:00"))
-                    .build(),
-
-            Experiencia.builder()
-                    .experienciaId(12L).nombre("Noche de Fogata Campesina")
-                    .descripcion("Encuentro nocturno con musica, historias campesinas y bebidas tradicionales")
-                    .precio(new BigDecimal("50000")).duracion(3)
-                    .ubicacion("Finca La Montaña, Calarca")
-                    .tipoExperiencia("Cultural")
-                    .capacidadMaxima(25).estado(true)
-                    .horariosDisponibles(List.of("19:00"))
-                    .build(),
-
-            Experiencia.builder()
-                    .experienciaId(13L).nombre("Ruta de Cascadas")
-                    .descripcion("Caminata guiada hacia cascadas naturales con espacios para descanso")
-                    .precio(new BigDecimal("80000")).duracion(5)
-                    .ubicacion("Cordoba, Quindio")
-                    .tipoExperiencia("Naturaleza")
-                    .capacidadMaxima(16).estado(true)
-                    .horariosDisponibles(List.of("06:30", "12:00"))
-                    .build(),
-
-            Experiencia.builder()
-                    .experienciaId(14L).nombre("Dia de Granja Interactiva")
-                    .descripcion("Actividad familiar para alimentar animales y conocer labores del campo")
-                    .precio(new BigDecimal("45000")).duracion(3)
-                    .ubicacion("La Tebaida, Quindio")
-                    .tipoExperiencia("Familiar")
-                    .capacidadMaxima(30).estado(true)
-                    .horariosDisponibles(List.of("08:30", "11:30", "15:30"))
-                    .build()
     ));
 
     /**
