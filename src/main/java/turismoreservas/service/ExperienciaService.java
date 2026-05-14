@@ -33,7 +33,7 @@ public class ExperienciaService {
      * Contador atómico para la generación de IDs únicos de nuevas experiencias.
      * Se inicializa en 5 dado que los datos precargados ocupan los IDs del 1 al 4.
      */
-    private final AtomicLong contador = new AtomicLong(5L);
+    private final AtomicLong contador = new AtomicLong(15L);
 
     /**
      * Lista en memoria que actúa como repositorio de experiencias.
@@ -73,7 +73,107 @@ public class ExperienciaService {
                     .ubicacion("Zona Cafetera, Quindio")
                     .tipoExperiencia("Cultural")
                     .capacidadMaxima(6).estado(true)
-                    .horariosDisponibles(List.of("08:00", "11:00", "15:00")).build()
+                    .horariosDisponibles(List.of("08:00", "11:00", "15:00")).build(),
+
+            Experiencia.builder()
+                    .experienciaId(5L).nombre("Ruta Cafetera Premium")
+                    .descripcion("Experiencia completa sobre cultivo, recoleccion y cata de cafe especial")
+                    .precio(new BigDecimal("95000")).duracion(5)
+                    .ubicacion("Finca El Ocaso, Salento")
+                    .tipoExperiencia("Cafetera")
+                    .capacidadMaxima(15).estado(true)
+                    .horariosDisponibles(List.of("08:00", "14:00"))
+                    .build(),
+
+            Experiencia.builder()
+                    .experienciaId(6L).nombre("Cabalgata por Valle Verde")
+                    .descripcion("Recorrido a caballo por senderos naturales y miradores")
+                    .precio(new BigDecimal("85000")).duracion(3)
+                    .ubicacion("Valle Verde, Filandia")
+                    .tipoExperiencia("Aventura")
+                    .capacidadMaxima(10).estado(true)
+                    .horariosDisponibles(List.of("09:00", "13:00", "16:00"))
+                    .build(),
+
+            Experiencia.builder()
+                    .experienciaId(7L).nombre("Tour de Panela Artesanal")
+                    .descripcion("Proceso tradicional de elaboracion de panela en trapiche rural")
+                    .precio(new BigDecimal("40000")).duracion(2)
+                    .ubicacion("Montenegro, Quindio")
+                    .tipoExperiencia("Cultural")
+                    .capacidadMaxima(20).estado(true)
+                    .horariosDisponibles(List.of("10:00", "15:00"))
+                    .build(),
+
+            Experiencia.builder()
+                    .experienciaId(8L).nombre("Camping Ecologico")
+                    .descripcion("Noche de camping en reserva natural con fogata y senderismo")
+                    .precio(new BigDecimal("120000")).duracion(12)
+                    .ubicacion("Reserva Bremen, Circasia")
+                    .tipoExperiencia("Naturaleza")
+                    .capacidadMaxima(18).estado(true)
+                    .horariosDisponibles(List.of("18:00"))
+                    .build(),
+
+            Experiencia.builder()
+                    .experienciaId(9L).nombre("Clase de Cocina Tradicional")
+                    .descripcion("Preparacion de platos tipicos de la region cafetera")
+                    .precio(new BigDecimal("65000")).duracion(3)
+                    .ubicacion("Armenia, Quindio")
+                    .tipoExperiencia("Gastronomia")
+                    .capacidadMaxima(14).estado(true)
+                    .horariosDisponibles(List.of("11:00", "17:00"))
+                    .build()
+            ,
+            Experiencia.builder()
+                    .experienciaId(10L).nombre("Tour de Cacao Artesanal")
+                    .descripcion("Recorrido por cultivo de cacao y elaboracion de chocolate artesanal")
+                    .precio(new BigDecimal("70000")).duracion(3)
+                    .ubicacion("Buenavista, Quindio")
+                    .tipoExperiencia("Gastronomia")
+                    .capacidadMaxima(12).estado(true)
+                    .horariosDisponibles(List.of("09:00", "14:00"))
+                    .build(),
+
+            Experiencia.builder()
+                    .experienciaId(11L).nombre("Bicicleta de Montana Rural")
+                    .descripcion("Ruta guiada en bicicleta por caminos rurales y miradores naturales")
+                    .precio(new BigDecimal("90000")).duracion(4)
+                    .ubicacion("Circasia, Quindio")
+                    .tipoExperiencia("Aventura")
+                    .capacidadMaxima(10).estado(true)
+                    .horariosDisponibles(List.of("07:00", "15:00"))
+                    .build(),
+
+            Experiencia.builder()
+                    .experienciaId(12L).nombre("Noche de Fogata Campesina")
+                    .descripcion("Encuentro nocturno con musica, historias campesinas y bebidas tradicionales")
+                    .precio(new BigDecimal("50000")).duracion(3)
+                    .ubicacion("Finca La Montaña, Calarca")
+                    .tipoExperiencia("Cultural")
+                    .capacidadMaxima(25).estado(true)
+                    .horariosDisponibles(List.of("19:00"))
+                    .build(),
+
+            Experiencia.builder()
+                    .experienciaId(13L).nombre("Ruta de Cascadas")
+                    .descripcion("Caminata guiada hacia cascadas naturales con espacios para descanso")
+                    .precio(new BigDecimal("80000")).duracion(5)
+                    .ubicacion("Cordoba, Quindio")
+                    .tipoExperiencia("Naturaleza")
+                    .capacidadMaxima(16).estado(true)
+                    .horariosDisponibles(List.of("06:30", "12:00"))
+                    .build(),
+
+            Experiencia.builder()
+                    .experienciaId(14L).nombre("Dia de Granja Interactiva")
+                    .descripcion("Actividad familiar para alimentar animales y conocer labores del campo")
+                    .precio(new BigDecimal("45000")).duracion(3)
+                    .ubicacion("La Tebaida, Quindio")
+                    .tipoExperiencia("Familiar")
+                    .capacidadMaxima(30).estado(true)
+                    .horariosDisponibles(List.of("08:30", "11:30", "15:30"))
+                    .build()
     ));
 
     /**

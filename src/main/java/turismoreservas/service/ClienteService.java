@@ -46,6 +46,81 @@ public class ClienteService {
                     .id(4L).clienteId(4L).nombre("Juan Torres")
                     .correo("juan@email.com").telefono("3001112233")
                     .estado(true).fechaRegistro(LocalDate.of(2025, 1, 15)).build()
+            ,
+            Cliente.builder()
+                    .id(5L).clienteId(5L).nombre("Laura Martinez")
+                    .correo("laura@email.com").telefono("3114455667")
+                    .estado(true).fechaRegistro(LocalDate.of(2025, 2, 10)).build(),
+
+            Cliente.builder()
+                    .id(6L).clienteId(6L).nombre("Andres Gomez")
+                    .correo("andres@email.com").telefono("3127788990")
+                    .estado(true).fechaRegistro(LocalDate.of(2025, 2, 22)).build(),
+
+            Cliente.builder()
+                    .id(7L).clienteId(7L).nombre("Sofia Herrera")
+                    .correo("sofia@email.com").telefono("3205566778")
+                    .estado(true).fechaRegistro(LocalDate.of(2025, 3, 1)).build(),
+
+            Cliente.builder()
+                    .id(8L).clienteId(8L).nombre("Felipe Castro")
+                    .correo("felipe@email.com").telefono("3009988776")
+                    .estado(true).fechaRegistro(LocalDate.of(2025, 3, 18)).build(),
+
+            Cliente.builder()
+                    .id(9L).clienteId(9L).nombre("Valentina Rojas")
+                    .correo("valentina@email.com").telefono("3156677889")
+                    .estado(true).fechaRegistro(LocalDate.of(2025, 4, 5)).build()
+            ,
+            Cliente.builder()
+                    .id(10L).clienteId(10L).nombre("Camila Vargas")
+                    .correo("camila@email.com").telefono("3184455661")
+                    .estado(true).fechaRegistro(LocalDate.of(2025, 4, 12)).build(),
+
+            Cliente.builder()
+                    .id(11L).clienteId(11L).nombre("Sebastian Molina")
+                    .correo("sebastian@email.com").telefono("3132244668")
+                    .estado(true).fechaRegistro(LocalDate.of(2025, 4, 25)).build(),
+
+            Cliente.builder()
+                    .id(12L).clienteId(12L).nombre("Daniela Quintero")
+                    .correo("daniela@email.com").telefono("3204455779")
+                    .estado(true).fechaRegistro(LocalDate.of(2025, 5, 2)).build(),
+
+            Cliente.builder()
+                    .id(13L).clienteId(13L).nombre("Miguel Fernandez")
+                    .correo("miguel@email.com").telefono("3018899775")
+                    .estado(true).fechaRegistro(LocalDate.of(2025, 5, 10)).build(),
+
+            Cliente.builder()
+                    .id(14L).clienteId(14L).nombre("Paula Jimenez")
+                    .correo("paula@email.com").telefono("3167788994")
+                    .estado(true).fechaRegistro(LocalDate.of(2025, 5, 18)).build()
+            ,
+            Cliente.builder()
+                    .id(15L).clienteId(15L).nombre("Natalia Castaño")
+                    .correo("natalia@email.com").telefono("3105566442")
+                    .estado(true).fechaRegistro(LocalDate.of(2025, 5, 25)).build(),
+
+            Cliente.builder()
+                    .id(16L).clienteId(16L).nombre("David Restrepo")
+                    .correo("david@email.com").telefono("3159988441")
+                    .estado(true).fechaRegistro(LocalDate.of(2025, 6, 3)).build(),
+
+            Cliente.builder()
+                    .id(17L).clienteId(17L).nombre("Juliana Moreno")
+                    .correo("juliana@email.com").telefono("3123344556")
+                    .estado(true).fechaRegistro(LocalDate.of(2025, 6, 11)).build(),
+
+            Cliente.builder()
+                    .id(18L).clienteId(18L).nombre("Esteban Salazar")
+                    .correo("esteban@email.com").telefono("3201122334")
+                    .estado(true).fechaRegistro(LocalDate.of(2025, 6, 20)).build(),
+
+            Cliente.builder()
+                    .id(19L).clienteId(19L).nombre("Carolina Mejia")
+                    .correo("carolina@email.com").telefono("3015566772")
+                    .estado(true).fechaRegistro(LocalDate.of(2025, 7, 1)).build()
     ));
 
     /**
