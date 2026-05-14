@@ -58,16 +58,26 @@ public class ReservaService {
                 .collect(Collectors.toList());
 
         // 3. Verificar capacidad en cada experiencia
-        experiencias.forEach(exp -> {
-            if (dto.getCantidadPersonas() > exp.getCapacidadMaxima()) {
-                throw new BusinessException(
-                        "La experiencia '" + exp.getNombre() +
-                                "' tiene capacidad maxima de " +
-                                exp.getCapacidadMaxima() + " personas");
-            }
-        });
+        for (Experiencia exp : experiencias) {
 
-        // 4. Calcular total: suma de precios x cantidad de personas
+            int personasYaReservadas = reservas.stream()
+                    .filter(r -> r.getEstadoReserva() != EstadoReserva.CANCELADA)
+                    .filter(r -> r.getFechaExperiencia().equals(dto.getFechaExperiencia()))
+                    .filter(r -> r.getHoraExperiencia().equals(dto.getHoraExperiencia()))
+                    .filter(r -> r.getExperiencias().stream()
+                            .anyMatch(e -> e.getExperienciaId().equals(exp.getExperienciaId()))
+                    )
+                    .mapToInt(Reserva::getCantidadPersonas)
+                    .sum();
+
+            if (personasYaReservadas + dto.getCantidadPersonas() > exp.getCapacidadMaxima()) {
+                throw new BusinessException(
+                        "No hay cupos suficientes para la experiencia: " + exp.getNombre()
+                );
+            }
+        }
+
+        // 4. Calcular total
         BigDecimal total = experiencias.stream()
                 .map(Experiencia::getPrecio)
                 .reduce(BigDecimal.ZERO, BigDecimal::add)

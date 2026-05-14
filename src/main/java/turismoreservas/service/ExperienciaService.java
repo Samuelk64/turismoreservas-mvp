@@ -101,8 +101,7 @@ public class ExperienciaService {
 
     public void eliminar(Long id) {
         Experiencia existente = buscarEntidadPorId(id);
-        experiencias.remove(existente);
-    }
+        existente.setEstado(false);    }
 
     private ExperienciaResponseDTO toDTO(Experiencia e) {
         return ExperienciaResponseDTO.builder()

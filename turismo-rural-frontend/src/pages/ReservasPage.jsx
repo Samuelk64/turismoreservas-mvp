@@ -12,7 +12,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import { getReservas, crearReserva, cancelarRes } from '../api/reservas'
 import { getExperiencias } from '../api/experiencias'
 import { getClientes } from '../api/clientes'
-import { getImagenPorTipo } from '../utils/imagenes'
+import { getImagenPorTipo } from '../utils/Imagenes'
 
 const METODOS_PAGO = [
     { value: 'EFECTIVO',        label: 'Efectivo' },

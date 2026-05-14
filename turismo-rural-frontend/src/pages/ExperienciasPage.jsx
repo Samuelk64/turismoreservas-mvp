@@ -9,7 +9,7 @@ import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { getExperiencias, crearExperiencia, actualizarExp, eliminarExp } from '../api/experiencias'
-import { getImagenPorTipo } from '../utils/imagenes'
+import { getImagenPorTipo } from '../utils/Imagenes'
 
 const TIPOS = ['Senderismo', 'Naturaleza', 'Gastronomia', 'Cultural']
 
