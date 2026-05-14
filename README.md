@@ -22,7 +22,7 @@ El sistema fue diseñado a partir de un diagrama de dominio que modela las entid
 | `Itinerario` | Agrupación de una o varias experiencias para un cliente |
 | `Reserva` | Transacción principal que vincula un cliente con experiencias seleccionadas |
 
-### Reglas de negocio implementadas
+### Reglas de negocio verificadas
 
 - **RN-05:** El sistema no permite crear una reserva si existe conflicto de horario entre las experiencias seleccionadas
 - Un itinerario debe tener al menos una experiencia (`1..*`)
@@ -54,53 +54,6 @@ El sistema fue diseñado a partir de un diagrama de dominio que modela las entid
  
 ---
 
-## Estructura del proyecto
-
-```
-turismo-rural/
- ├── turismoreservas/                  ← Proyecto Spring Boot
- │    ├── src/main/java/com/turismoreservas/
- │    │    ├── controllers/            ← Endpoints REST
- │    │    │    ├── ClienteController.java
- │    │    │    ├── ExperienciaController.java
- │    │    │    ├── ItinerarioController.java
- │    │    │    ├── OperadorController.java
- │    │    │    └── ReservaController.java
- │    │    ├── service/                ← Lógica de negocio + datos en memoria
- │    │    │    ├── ClienteService.java
- │    │    │    ├── ExperienciaService.java
- │    │    │    ├── ItinerarioService.java
- │    │    │    ├── OperadorService.java
- │    │    │    └── ReservaService.java
- │    │    ├── domain/
- │    │    │    ├── entity/            ← Clases del dominio
- │    │    │    ├── dto/               ← Objetos de transferencia de datos
- │    │    │    └── enums/             ← MetodoPago · EstadoReserva
- │    │    ├── exception/              ← Manejo global de errores
- │    │    └── config/                 ← CORS · OpenAPI
- │    └── src/main/resources/
- │         └── application.yml
- │
- └── turismo-rural-frontend/           ← Proyecto React + Vite
-      └── src/
-           ├── api/                    ← Llamadas HTTP al backend
-           │    ├── axios.js
-           │    ├── clientes.js
-           │    ├── experiencias.js
-           │    └── reservas.js
-           ├── components/
-           │    └── Navbar.jsx
-           ├── pages/
-           │    ├── ExperienciasPage.jsx   ← Pantalla CRUD
-           │    └── ReservasPage.jsx       ← Pantalla transacción
-           ├── utils/
-           │    └── imagenes.js
-           ├── App.jsx
-           └── main.jsx
-```
- 
----
-
 ## Instrucciones de ejecución
 
 ### Prerrequisitos
@@ -110,12 +63,12 @@ Asegúrate de tener instalado:
 - [Java 21](https://adoptium.net/)
 - [Node.js 18+](https://nodejs.org/)
 - [Git](https://git-scm.com/) (opcional)
-- IDE recomendado: IntelliJ IDEA para el backend, VS Code para el frontend
+- IDE recomendado: IntelliJ IDEA
 ---
 
 ### 1. Ejecutar el backend
 
-**Opción A — Desde el IDE (recomendada)**
+**Opción A — Desde el IDE **
 
 1. Abre el proyecto `turismoreservas` en IntelliJ IDEA
 2. Espera que Maven descargue las dependencias automáticamente
@@ -125,8 +78,8 @@ Asegúrate de tener instalado:
 
 ```bash
 cd turismoreservas
-./mvnw spring-boot:run        # Mac / Linux
-mvnw.cmd spring-boot:run      # Windows
+./mvnw spring-boot:run       
+mvnw.cmd spring-boot:run     
 ```
 
 El backend quedará disponible en:
@@ -159,7 +112,7 @@ El frontend quedará disponible en:
 http://localhost:5173
 ```
 
-> ⚠️ El backend debe estar corriendo antes de abrir el frontend, de lo contrario las llamadas a la API fallarán.
+> ⚠ El backend debe estar corriendo antes de abrir el frontend, de lo contrario las llamadas a la API fallarán.
  
 ---
 
@@ -186,55 +139,10 @@ Permite:
 - Cancelar reservas activas
 ---
 
-## Endpoints disponibles
+## Información relevante
 
-| Método | Ruta | Descripción |
-|---|---|---|
-| GET | `/api/experiencias` | Listar todas las experiencias |
-| GET | `/api/experiencias/{id}` | Obtener experiencia por ID |
-| POST | `/api/experiencias` | Crear nueva experiencia |
-| PUT | `/api/experiencias/{id}` | Actualizar experiencia |
-| DELETE | `/api/experiencias/{id}` | Eliminar experiencia |
-| GET | `/api/reservas` | Listar todas las reservas |
-| GET | `/api/reservas/{id}` | Obtener reserva por ID |
-| POST | `/api/reservas` | Crear nueva reserva |
-| PUT | `/api/reservas/{id}/cancelar` | Cancelar reserva |
-| GET | `/api/clientes` | Listar clientes |
-| GET | `/api/operadores` | Listar operadores rurales |
-| PUT | `/api/operadores/{id}/habilitar` | Habilitar operador |
-| PUT | `/api/operadores/{id}/deshabilitar` | Deshabilitar operador |
-| GET | `/api/itinerarios` | Listar itinerarios |
-| POST | `/api/itinerarios` | Crear itinerario |
-| PUT | `/api/itinerarios/{id}/agregar-experiencia/{expId}` | Agregar experiencia a itinerario |
-| DELETE | `/api/itinerarios/{id}/eliminar-experiencia/{expId}` | Eliminar experiencia de itinerario |
- 
----
-
-## Datos precargados en memoria
-
-El sistema inicia con los siguientes datos de ejemplo:
-
-**Clientes:** Ana Garcia · Carlos Ramirez · Maria Lopez · Juan Torres
-
-**Experiencias:**
-| Nombre | Tipo | Precio | Horarios |
-|---|---|---|---|
-| Senderismo El Roble | Senderismo | $75.000 COP | 07:00 · 10:00 · 13:00 |
-| Avistamiento de Aves | Naturaleza | $55.000 COP | 05:30 · 08:00 |
-| Taller de Quesos Artesanales | Gastronomia | $45.000 COP | 09:00 · 14:00 · 16:00 |
-| Recorrido en Jeep Willy | Cultural | $35.000 COP | 08:00 · 11:00 · 15:00 |
-
-**Operadores:** Pedro Arbelaez · Lucia Cardona · Andres Salazar
-
-**Itinerarios:** Fin de semana en el Quindio · Experiencia cafetera completa
-
->  Los datos se reinician cada vez que se reinicia el backend al no tener persistencia en base de datos.
- 
----
-
-## Información académica
-
-**Asignatura:** Desarrollo de Software  
+**Asignatura:** Ingenieria de Software I
 **Proyecto:** MVP — Sistema de Gestión de Reservas de Turismo Rural  
 **Stack:** Spring Boot + React  
 **Alcance:** 2 pantallas funcionales (CRUD de Experiencias + Transacción de Reserva)
+**Autores:** Samuel Calle, Joseph Escobar, Juan David Castañeda
